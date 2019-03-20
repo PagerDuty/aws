@@ -12,7 +12,8 @@ state_attrs :availability_zone,
             :timeout,
             :volume_id,
             :volume_type,
-            :encrypted
+            :encrypted,
+            :delete_on_termination
 
 attribute :aws_access_key,        kind_of: String
 attribute :aws_secret_access_key, kind_of: String
@@ -30,6 +31,7 @@ attribute :volume_type,           kind_of: String, default: 'standard'
 attribute :piops,                 kind_of: Integer, default: 0
 attribute :encrypted,             kind_of: [TrueClass, FalseClass], default: false
 attribute :kms_key_id,            kind_of: String
+attribute :delete_on_termination, kind_of: [TrueClass, FalseClass], default: false
 
 def initialize(*args)
   super
