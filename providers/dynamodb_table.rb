@@ -1,10 +1,4 @@
-include Opscode::Aws::DynamoDB
-
-use_inline_resources
-
-def whyrun_supported?
-  true
-end
+include AwsCookbook::DynamoDB
 
 action :create do
   load_current_resource
@@ -111,9 +105,7 @@ private
 def load_gsi_creates(api_indexes, res_indexes)
   creates = []
   res_indexes.each do |res_index|
-    unless api_indexes && api_indexes.index { |x| x.index_name == res_index[:index_name] }
-      creates.push(create: res_index)
-    end
+    creates.push(create: res_index) unless api_indexes && api_indexes.index { |x| x.index_name == res_index[:index_name] }
   end
   creates
 end
@@ -133,7 +125,7 @@ def load_gsi_updates(api_indexes, res_indexes)
     updates.push(
       update: {
         index_name: gsi.index_name,
-        provisioned_throughput: res_index[:provisioned_throughput]
+        provisioned_throughput: res_index[:provisioned_throughput],
       }
     ) if throughput_changed?(
       api_index.provisioned_throughput, res_index[:provisioned_throughput]
@@ -150,9 +142,7 @@ private
 def load_gsi_deletes(api_indexes, res_indexes)
   deletes = []
   api_indexes.each do |api_index|
-    unless res_indexes.index { |x| x[:index_name] == api_index.index_name }
-      deletes.push(delete: { index_name: api_index.index_name })
-    end
+    deletes.push(delete: { index_name: api_index.index_name }) unless res_indexes.index { |x| x[:index_name] == api_index.index_name }
   end
   deletes
 end
@@ -163,7 +153,6 @@ private
 def do_delete_table
   converge_by("delete DynamoDB table #{new_resource.table_name}") do
     dynamodb.delete_table(table_name: new_resource.table_name)
-    new_resource.updated_by_last_action(true)
   end
 end
 
@@ -181,7 +170,6 @@ def do_create_table
       provisioned_throughput: new_resource.provisioned_throughput,
       stream_specification: new_resource.stream_specification
     )
-    new_resource.updated_by_last_action(true)
   end
 end
 
@@ -196,7 +184,6 @@ def do_update_throughput
       table_name: new_resource.table_name,
       provisioned_throughput: new_resource.provisioned_throughput
     )
-    new_resource.updated_by_last_action(true)
   end
 end
 
@@ -211,7 +198,6 @@ def do_update_streamspec
       table_name: new_resource.table_name,
       stream_specification: new_resource.stream_specification
     )
-    new_resource.updated_by_last_action(true)
   end
 end
 
@@ -230,7 +216,6 @@ def do_change_gsi(op)
         attribute_definitions: new_resource.attribute_definitions,
         global_secondary_index_updates: [index]
       )
-      new_resource.updated_by_last_action(true)
     end
   end
 end

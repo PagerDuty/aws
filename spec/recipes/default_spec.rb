@@ -1,9 +1,11 @@
 require 'spec_helper'
 
-describe 'aws::ec2_hints' do
-  let(:chef_run) { ChefSpec::SoloRunner.converge(described_recipe) }
+describe 'aws::default' do
+  # Nothing in this test is platform-specific, so use the latest Ubuntu for
+  # simulated data.
+  platform 'ubuntu'
 
-  it 'creates the ohai hint' do
-    expect(chef_run).to create_ohai_hint('ec2').at_compile_time
+  context 'does not raise an error' do
+    it { expect { chef_run }.to_not raise_error }
   end
 end

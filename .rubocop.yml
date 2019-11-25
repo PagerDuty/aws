@@ -1,24 +1,23 @@
-# rubocop todo:
-#
+require:
+  - cookstyle
+
 Lint/AmbiguousRegexpLiteral:
   Exclude:
-    - 'test/integration/dynamodb_table_create/rspec/dynamodb_table_create_spec.rb'
-    - 'test/integration/dynamodb_table_update/rspec/dynamodb_table_update_spec.rb'
-    - 'test/integration/s3_file/default_spec.rb'
-
-Lint/Loop:
-  Exclude:
-    - 'providers/ebs_raid.rb'
+    - 'test/**/*'
 
 Lint/ParenthesesAsGroupedExpression:
   Exclude:
-    - 'test/fixtures/cookbooks/aws_test/recipes/dynamodb_table_create.rb'
-    - 'test/fixtures/cookbooks/aws_test/recipes/dynamodb_table_update.rb'
+    - 'test/fixtures/cookbooks/aws_test/recipes/dynamodb_table.rb'
 
-Lint/UselessAssignment:
-  Exclude:
-    - 'libraries/ec2.rb'
+Metrics/BlockNesting:
+  Max: 7
 
-# Configuration parameters: CountKeywordArgs.
 Metrics/ParameterLists:
-  Max: 15
+  Max: 8
+
+Style/GuardClause:
+  Exclude:
+    - 'resources/cloudformation_stack.rb'
+    - 'resources/cloudwatch.rb'
+    - 'resources/ebs_volume.rb'
+    - 'resources/elastic_ip.rb'

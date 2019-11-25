@@ -2,19 +2,207 @@
 
 This file is used to list changes made in each version of the aws cookbook.
 
+## 8.1.1 (2019-11-10)
+
+- bump aws-partitions for aws-sdk-core fix - [@scalp42](https://github.com/scalp42)
+
+## 8.1.0 (2019-11-08)
+
+- Add Security group functionality (#379) - [@smcavallo](https://github.com/smcavallo)
+- Adding support for virtualHost on s3
+- Remove the long_description and if respond_to? in metadata.rb - [@tas50](https://github.com/tas50)
+- Remove the ChefSpec matchers - [@tas50](https://github.com/tas50)
+- Remove use_inline_resources in the provider - [@tas50](https://github.com/tas50)
+- Remove the why-run check in the dynamo provider - [@tas50](https://github.com/tas50)
+- Use platform? helpers where we can - [@tas50](https://github.com/tas50)
+- Attempt to fix gem install issues with aws gems - [@majormoses](https://github.com/majormoses)
+
+## 8.0.4 (2019-05-16)
+
+- Added a basic chefspec test - [@dualbus](https://github.com/dualbus)
+- Add code owners file - [@tas50](https://github.com/tas50)
+- Rename the kitchen config - [@tas50](https://github.com/tas50)
+- Cookstyle fixes - [@tas50](https://github.com/tas50)
+- Add security section to the readme - [@smcavallo](https://github.com/smcavallo)
+- mark all secret_access_key/session_token parameters as sensitive - [@smcavallo](https://github.com/smcavallo)
+- account for timezone in setting s3 presigned url expiration - [@majormoses](https://github.com/majormoses)
+- bump aws-sdk-* gems for aws-sigv4 compatibility - [@scalp42](https://github.com/scalp42)
+
+## 8.0.3 (2018-12-21)
+
+- Use the right alias - [@majormoses](https://github.com/majormoses)
+- remove refs to `return_keys` - [@majormoses](https://github.com/majormoses)
+
+## 8.0.2 (2018-12-18)
+
+- add `alias_method` for `reutrn_key` and `return_keys` - [@majormoses](https://github.com/majormoses)
+
+## 8.0.1 (2018-12-14)
+
+- Fix the gem metadata to prevent failurs to install the gems - [@majormoses](https://github.com/majormoses)
+
+## 8.0.0 (2018-12-14)
+
+- Switch to aws-sdk-v3 gems and only install the minimum required gems - [@bdwyertech](https://github.com/bdwyertech)
+- s3_file: Fixed local ETag calculation to handle file originally uploaded as multi part. - [@joshs85](https://github.com/joshs85)
+- s3_file: Created s3_url property to be able to retrieve the pre signed url. - [@joshs85](https://github.com/joshs85)
+- s3_file: Made secret access key and token sensitive properties so they don't show up in logs. - [@joshs85](https://github.com/joshs85)
+- ssm_parameter_store: Fix namespacing issues and clean up the ssm_parameter_store resource parameters. This is a `BREAKING CHANGE` as it removes the parameters path from the key returned to the run_state. If you had a path such as `/creds-path/`, a credential called `some_token`, and a `return_keys` of `some-app`: `node.run_state['some-app']` will contain `{"some_token"=>"token_value"}` where previously it returned `{"/creds-path/some_token"=>"token_value"}`. As such you will need to update all refrences that use this. - [@bdwyertech](https://github.com/bdwyertech)
+- ssm_parameter_store: add proper handling of pagination for path-based queries - [@bdwyertech](https://github.com/bdwyertech)
+- Lock aws gems to their latest minor version to prevent installing every updated gem Amazon releases - [@majormoses](https://github.com/majormoses)
+
+
+## 7.5.0 (2018-07-18)
+
+- Fixing getting Route53 record when geo location is set
+- added autoscaling resource
+- Adds `http_proxy` to the AWS client options so the Seahorse client traverses the proxy if the environment variable is defined
+- Cleanup tests so they can be more easily run outside Chef
+
+## 7.4.1 (2018-05-17)
+
+- Rescue Aws::EC2::Errors::InvalidSnapshotInUse with a friendly message
+
+## 7.4.0 (2018-05-17)
+
+- Allow installation of either aws-sdk v2 or v3
+- Add support for STS assumed roles
+- Add default empty hashes to several properties
+- Resolve a few more Chef 14 incompatibilities
+- Fix a failure when deleting ebs volumes
+
+## 7.3.1 (2018-03-21)
+
+- Check for nil as well as empty tags in ebs_volume
+
+## 7.3.0 (2018-03-20)
+
+- add aws_instance_role
+- Add option to tag the new volumes and snapshots
+- Added basic functionality for parameter store
+- add `requester_pays` option to `s3_file`
+- fix etag request via head_object when requester_pays
+- Remove name property that isn't necessary
+- Added SSM Parameter Store get functionality
+- Chef 14: Avoid passing nils to remote_file in aws_s3_file resource
+
+## 7.2.2 (2017-11-14)
+
+- Resolve FC108 warning
+- Make sure ip is listed as required for elastic_ip in the readme
+
+## 7.2.1 (2017-09-08)
+
+- Add missing aws_instance_term_protection matcher. Rename kinetic to kinesis matcher.
+
+## 7.2.0 (2017-09-06)
+
+- Add instance_term_protection resource
+- Added named_iam_capability option to the cloudformation_stack resource
+
+## 7.1.2 (2017-06-19)
+
+- Multiple fixes to issues with the elastic_ip resource that prevented converges
+
+## 7.1.1 (2017-06-16)
+
+- Use the correct region value to prevent converge failures introduced in 7.0 with the ebs_volume resource
+- Better handle snapshots when the user passes a volume_id instead of a snapshot ID
+- Reload Ohai data when a ebs volume in attached or detached so the node data is correct
+- Properly error if the user does not pass device to ebs_volume when its needed
+
+## 7.1.0 (2017-06-16)
+
+- Refactor and fix the secondary_ip resource
+  - Fix failures that occured when assigning IPs via the resource (aka make it actually work)
+  - Move all helpers out of the EC2 libary and into the resource itself
+  - Instead of using open-uri to query the metadata endpoint use EC2 data from Ohai
+  - Make IP a required property since we need that to run
+  - Refactor the wait loop that broke notification when the resources updated
+  - Reload Ohai data in the resource so downstream recipes will know about the new IP
+
+## 7.0.0 (2017-06-15)
+
+- The route53_record resource from the route53 resource has been moved into this cookbook. The resource is now named aws_route53_record, but can be referenced by the old name: route53_record. The resource now accepts all authentication methods supported by this cookbook and a new zone_name property can be used in place of the zone_id property so you now only need to know the name of the zone the record is placed into.
+- Added a new aws_route53_zone resource for adding zones to Route53
+- Added new aws_s3_bucket resource. This is a very simple resource at the moment, but it lays the groundwork for a more complex resource for adding buckets with ACLs and other features
+- Converted all resources except for dynamodb_table to be custom resources. Logging and converging of resources has been updated and code has been cleaned up
+- Simplified the cookbook libraries by collapsing most of the libraries into the individual resources. For the most part these just added unnecessary complexity to the cookbook
+- Reworked how aws region information is determined and how the connection to AWS is initialized to work with some the new resources and the existing route53 resources
+- Moved the libraries from the Opscode::Aws namespace to the AwsCookbook namespace.
+- Large scale readme cleanup. There were multiple resources missing and some resources documented in 2 places. The documentation for resources is now ordered alphabetically and contains all actions and properties.
+- Updated elastic_ip resource to reload ohai after changes so ohai data reflects the current node state
+- Remove storage of IP information on the node when using the elastic_ip resource. This is a bad practice in general as node data can be changed or deleted by users or chef itself. This is potentially a breaking change for users that relied on this behavior.
+- Updated resource_tag to properly support why-run mode
+
+## 6.1.1 (2017-06-05)
+
+- Resolve frozen string warning on Chef 13 in the s3_file rsource
+- Resolve useless assignment cookstyle warning in the EC2 library
+- Make the ELB deletion messaging consistent with the create messaging
+
+## 6.1.0 (2017-05-01)
+
+- Converted aws_cloudwath and aws_elb to custom resources with code cleanup
+- Add create/delete actions to the aws_elb resource. This resource is currently not able to update the state of the ELB and does not setup health checks. It's mostly used to allow us to test the existing attach/detach actions, but it will be expanded in the future to allow for full ELB management
+- Cleanup of the EC2 helper and removal of a few unnecessary helpers
+
+## 6.0.0 (2017-04-27)
+
+- Resolve deprecation warning in the chefspecs
+- Remove the EBS Raid resource, which did not work on modern EC2 instance types and only worked on select Linux systems. We highly recommend users utilize provisioned IOPS on EBS volumes as they offer far greater reliability. If that's not an option you may want to pin to the 5.X release of this cookbook.
+- Remove the ec2_hints recipe as newer Chef releases auto detect EC2 and don't require hints to be applied
+- Use Chef's gem install in the metadata to handle gem installation. This increases the minimum required Chef release to 12.9
+- Convert instance_monitoring to a custom resource with improved logging and converge notification
+- Consider pending to be enabled as well within instance_monitoring to avoid enabling again
+
+## 5.0.1 (2017-04-18)
+
+- Fix for Issue #283 (error on aws_resource_tag): Updated deprecated Chef::Resource call with valid Chef::ResourceResolver drop-in
+
+## 5.0.0 (2017-04-11)
+
+- Calculate the presigned url after the md5 check as it may timeout when the existing file is very large
+- Update testing for Chef 13 and use local delivery
+- Update apache2 license string
+- Require the latest ohai cookbook which fixes Chef 13 compatibility. With this change this cookbook now requires Chef 12.6 or later
+
+## 4.2.2 (2017-02-24)
+
+- Let the API decide what the default volume type is for EBS volumes. This doesn't actually change anything at the moment, but keeps us up to date with the defaults of the aws-sdk
+
+## 4.2.1 (2017-02-24)
+
+- Tweaks to the readme for clarity
+- Remove Ubuntu 12.04 and openSUSE 13.2 from Test Kitchen matrix as these are both on the way to EOL
+- Remove the sensitive, retries, and retry_delay from the s3_file resource for Chef 13 compatibility since chef itself defines these
+
+## 4.2.0 (2017-01-21)
+
+- README: Add ec2:ModifyInstanceAttribute to sample IAM policy (fixes #241)
+- Added a new resource for managing CloudWatch alarms
+
+## 4.1.3 (2016-11-01)
+
+- Dont declare region twice in S3_file
+
 ## 4.1.2 (2016-10-04)
+
 - Add matcher definitions for ChefSpec
 
 ## 4.1.1 (2016-09-19)
+
 - Fix false "volume no longer exists" errors.
 - Use alias_method to cleanup backwards compatibility in s3_file
 
 ## 4.1.0 (2016-09-19)
+
 - Pass through retry_delay to remote_file
 - Require ohai 4.0+ cookbook and use new compile_time method for ohai_hint resource
 - Remove Chef 11 compatibility code in the aws-sdk gem install
 
 ## 4.0.0 (2016-09-15)
+
 - Testing updates
 - Require Chef 12.1 or later
 - Use node.normal instead of node.set to avoid deprecation notices
