@@ -48,9 +48,6 @@ action :create do
           health_check_id: id
         )
         current_config = check[:health_check][:health_check_config]
-
-        puts "\n#{current_config}\n"
-
         if current_config[:type] != new_resource.type
           raise "AWS APIs don't permit changing the 'type' of an existing health check"
         elsif current_config[:request_interval] != new_resource.request_interval
