@@ -35,7 +35,6 @@ alias_method :aws_access_key_id, :aws_access_key
 alias_method :aws_region, :region
 
 action :create do
-  # if health check exists
   if health_check_exists(new_resource.name)
     if health_check_modified(new_resource.name)
       converge_by("update health check #{new_resource.name}") do
