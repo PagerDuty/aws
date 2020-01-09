@@ -1,5 +1,3 @@
-require 'securerandom'
-
 provides :aws_route53_health_check
 
 property :type, String, required: true
@@ -12,8 +10,8 @@ property :enable_sni, [true, false], default: false
 property :request_interval, Integer, default: 30
 property :failure_threshold, Integer, default: 3
 property :inverted, [true, false], default: false
-property :measure_latency, [true,false], default: false
-property :check_regions, Array, default: ['us-west-1', 'us-east-1', 'us-west-2']
+property :measure_latency, [true, false], default: false
+property :check_regions, Array, default: %w(us-west-1 us-east-1 us-west-2)
 property :fail_on_error, [true, false], default: false
 
 # the r53 health check API calls this "regions" but calling the
@@ -46,9 +44,9 @@ action :create do
         # AWS API doesn't allow some fields to be updated. We can't
         # delete-and-recreate with a new type because DNS records might refer
         # to the id of this check.
-        check = route53_client.get_health_check({
+        check = route53_client.get_health_check(
           health_check_id: id
-        })
+        )
         current_config = check[:health_check][:health_check_config]
 
         puts "\n#{current_config}\n"
@@ -73,30 +71,31 @@ action :create do
       # caller_reference is a universally unique reference to this health check. We don't
       # need the protections the API provides around it, AND you can't reuse the caller
       # reference of a deleted health check again ever(!), so random uuid it is
+      require 'securerandom'
       caller_reference = SecureRandom.uuid
 
       resp = route53_client.create_health_check(
         caller_reference: caller_reference,
-        health_check_config: health_check_config,
+        health_check_config: health_check_config
       )
       check_id = resp[:health_check][:id]
       tag_health_check(check_id)
       # store id in node so we can delete by name later
-      node.normal['aws']['route53_health_check'][new_resource.name]['check_id'] = check_id
-      node.normal['aws']['route53_health_check'][new_resource.name]['caller_reference'] = caller_reference
+      node.default['aws']['route53_health_check'][new_resource.name]['check_id'] = check_id
+      node.default['aws']['route53_health_check'][new_resource.name]['caller_reference'] = caller_reference
     end
   end
 end
 
 action :delete do
-  #if health_check_exists(new_resource.name)
-    converge_by("remove health check #{new_resource.name}") do
-      route53_client.delete_health_check({
-        health_check_id: name_to_check_id(new_resource.name)
-      })
-      node.rm('aws', 'route53_health_check', new_resource.name)
-    end
-  #end
+  # if health_check_exists(new_resource.name)
+  converge_by("remove health check #{new_resource.name}") do
+    route53_client.delete_health_check(
+      health_check_id: name_to_check_id(new_resource.name)
+    )
+    node.rm('aws', 'route53_health_check', new_resource.name)
+  end
+  # end
 end
 
 action_class do
@@ -117,9 +116,9 @@ action_class do
   def health_check_exists(name)
     id = name_to_check_id(name)
     if id
-      resp = route53_client.get_health_check({
+      resp = route53_client.get_health_check(
         health_check_id: id
-      })
+      )
       if !resp.empty?
         true
       else
@@ -131,17 +130,17 @@ action_class do
   end
 
   def tag_health_check(id)
-    route53_client.change_tags_for_resource({
+    route53_client.change_tags_for_resource(
       add_tags: [
         {
           # "Name" appears in the R53 health check table in console
-          key: "Name",
+          key: 'Name',
           value: new_resource.name,
-        }
+        },
       ],
       resource_id: id,
-      resource_type: "healthcheck",
-    })
+      resource_type: 'healthcheck'
+    )
   end
 
   def health_check_config
@@ -164,9 +163,9 @@ action_class do
   end
 
   def health_check_modified(name)
-    resp = route53_client.get_health_check({
+    resp = route53_client.get_health_check(
       health_check_id: name_to_check_id(name)
-    })
+    )
 
     current_config = resp[:health_check][:health_check_config]
     new_config = health_check_config
@@ -185,7 +184,3 @@ action_class do
     false
   end
 end
-
-
-
-
