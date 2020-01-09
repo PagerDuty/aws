@@ -6,6 +6,16 @@ aws_route53_zone 'Add testkitchen.dmz zone' do
   aws_session_token node['aws_test']['session_token']
 end
 
+aws_route53_health_check "Add a health check" do
+  name 'test-health-check'
+  type 'HTTP'
+  fqdn 'chefnode.testkitchen.dmz'
+  port 443
+  aws_access_key node['aws_test']['key_id']
+  aws_secret_access_key node['aws_test']['access_key']
+  aws_session_token node['aws_test']['session_token']
+end
+
 aws_route53_record "Add our node's record" do
   name 'chefnode.testkitchen.dmz'
   value node['ipaddress']
@@ -13,6 +23,7 @@ aws_route53_record "Add our node's record" do
   ttl 3600
   zone_name 'testkitchen.dmz.'
   overwrite true
+#  health_check "health check"
   aws_access_key node['aws_test']['key_id']
   aws_secret_access_key node['aws_test']['access_key']
   aws_session_token node['aws_test']['session_token']
@@ -45,6 +56,14 @@ aws_route53_record "Delete our node's record" do
   aws_access_key node['aws_test']['key_id']
   aws_secret_access_key node['aws_test']['access_key']
   aws_session_token node['aws_test']['session_token']
+end
+
+aws_route53_health_check "Delete our health check" do
+  name 'test-health-check'
+  aws_access_key node['aws_test']['key_id']
+  aws_secret_access_key node['aws_test']['access_key']
+  aws_session_token node['aws_test']['session_token']
+  action :delete
 end
 
 aws_route53_zone 'Delete testkitchen.dmz zone' do
