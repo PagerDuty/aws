@@ -76,15 +76,17 @@ action_class do
 
   # convert the passed name to the trailing period format
   def name
-    if record_name
-      @name ||= new_resource.record_name[-1] == '.' ? new_resource.record_name : "#{new_resource.record_name}."
-    else
-      @name ||= new_resource.name[-1] == '.' ? new_resource.name : "#{new_resource.name}."
-    end
+    @name ||= new_resource.name[-1] == '.' ? new_resource.name : "#{new_resource.name}."
   end
 
   def record_name
-    @record_name ||= new_resource.record_name
+    if new_resource.record_name
+      @record_name ||= new_resource.record_name[-1] == '.' ? new_resource.record_name : "#{new_resource.record_name}."
+    end
+  end
+
+  def fqdn
+    @fqdn = record_name || name
   end
 
   def value
@@ -166,7 +168,7 @@ action_class do
 
   def resource_record_set
     rr_set = {
-      name: name,
+      name: fqdn,
       type: type,
     }
     if alias_target
@@ -190,12 +192,12 @@ action_class do
     lrrs = route53_client
            .list_resource_record_sets(
              hosted_zone_id: zone_id ? "/hostedzone/#{zone_id}" : zone_id_from_name(zone_name),
-             start_record_name: name
+             start_record_name: fqdn
            )
 
     # Select current resource record set by name and geo location.
     current = lrrs[:resource_record_sets]
-              .select { |rr| rr[:name] == name && rr[:type] == type && rr[:geo_location].to_h == geo_location.to_h }.first
+              .select { |rr| rr[:name] == fqdn && rr[:type] == type && rr[:geo_location].to_h == geo_location.to_h }.first
 
     # return as hash, converting resource record
     # array of structs to array of hashes
