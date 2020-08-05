@@ -4,9 +4,9 @@ provides :route53_record # for compatibility with the old cookbook
 
 property :value,                       [String, Array]
 property :type,                        String, required: true
-property :record_name,                 String, required: true
 property :ttl,                         Integer, default: 3600
 property :weight,                      String
+property :record_name,                 String
 property :set_identifier,              String
 property :geo_location,                String
 property :geo_location_country,        String
@@ -35,13 +35,13 @@ alias_method :aws_region, :region
 
 action :create do
   if current_resource_record_set == resource_record_set
-    Chef::Log.info "Record has not changed, skipping: #{record_name}[#{type}]"
+    Chef::Log.info "Record has not changed, skipping: #{name}[#{type}]"
   elsif overwrite?
     change_record 'UPSERT'
-    Chef::Log.info "Record created/modified: #{record_name}[#{type}]"
+    Chef::Log.info "Record created/modified: #{name}[#{type}]"
   else
     change_record 'CREATE'
-    Chef::Log.info "Record created: #{record_name}[#{type}]"
+    Chef::Log.info "Record created: #{name}[#{type}]"
   end
 end
 
@@ -49,7 +49,7 @@ action :delete do
   if mock?
     # Make some fake data so that we can successfully delete when testing.
     mock_resource_record_set = {
-      record_name: 'pdb_test.example.com.',
+      name: 'pdb_test.example.com.',
       type: 'A',
       ttl: 300,
       resource_records: [{ value: '192.168.1.2' }],
@@ -67,20 +67,24 @@ action :delete do
     Chef::Log.info 'There is nothing to delete.'
   else
     change_record 'DELETE'
-    Chef::Log.info "Record deleted: #{record_name}"
+    Chef::Log.info "Record deleted: #{name}"
   end
 end
 
 action_class do
   include AwsCookbook::Ec2
 
+  # convert the passed name to the trailing period format
   def name
-    @name ||= new_resource.name
+    if record_name
+      @name ||= new_resource.record_name[-1] == '.' ? new_resource.record_name : "#{new_resource.record_name}."
+    else
+      @name ||= new_resource.name[-1] == '.' ? new_resource.name : "#{new_resource.name}."
+    end
   end
 
-  # convert the passed record_name to the trailing period format
   def record_name
-    @record_name ||= new_resource.record_name[-1] == '.' ? new_resource.record_name : "#{new_resource.record_name}."
+    @record_name ||= new_resource.record_name
   end
 
   def value
@@ -162,7 +166,7 @@ action_class do
 
   def resource_record_set
     rr_set = {
-      name: record_name,
+      name: name,
       type: type,
     }
     if alias_target
@@ -186,12 +190,12 @@ action_class do
     lrrs = route53_client
            .list_resource_record_sets(
              hosted_zone_id: zone_id ? "/hostedzone/#{zone_id}" : zone_id_from_name(zone_name),
-             start_record_name: record_name
+             start_record_name: name
            )
 
     # Select current resource record set by name and geo location.
     current = lrrs[:resource_record_sets]
-              .select { |rr| rr[:name] == record_name && rr[:type] == type && rr[:geo_location].to_h == geo_location.to_h }.first
+              .select { |rr| rr[:name] == name && rr[:type] == type && rr[:geo_location].to_h == geo_location.to_h }.first
 
     # return as hash, converting resource record
     # array of structs to array of hashes
@@ -221,7 +225,7 @@ action_class do
     request = {
       hosted_zone_id: zone_id ? "/hostedzone/#{zone_id}" : zone_id_from_name(zone_name),
       change_batch: {
-        comment: "Chef Route53 Resource: #{record_name}",
+        comment: "Chef Route53 Resource: #{name}",
         changes: [
           {
             action: action,
@@ -230,7 +234,7 @@ action_class do
         ],
       },
     }
-    converge_by("#{action} record #{new_resource.record_name} ") do
+    converge_by("#{action} record #{new_resource.name} ") do
       response = route53_client.change_resource_record_sets(request)
       Chef::Log.debug "Changed record - #{action}: #{response.inspect}"
     end
